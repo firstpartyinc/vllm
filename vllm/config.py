@@ -73,7 +73,7 @@ class ModelConfig:
         tokenizer_revision: Optional[str] = None,
         max_model_len: Optional[int] = None,
         quantization: Optional[str] = None,
-        enforce_eager: bool = False,
+        enforce_eager: bool = True,
         max_context_len_to_capture: Optional[int] = None,
     ) -> None:
         self.model = model
