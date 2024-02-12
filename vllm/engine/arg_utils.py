@@ -34,7 +34,7 @@ class EngineArgs:
     revision: Optional[str] = None
     tokenizer_revision: Optional[str] = None
     quantization: Optional[str] = None
-    enforce_eager: bool = False
+    enforce_eager: bool = True
     max_context_len_to_capture: int = 8192
     disable_custom_all_reduce: bool = False
     enable_lora: bool = False
