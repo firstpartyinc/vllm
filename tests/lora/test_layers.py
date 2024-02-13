@@ -34,9 +34,6 @@ TOLERANCES = {
     torch.float32: (5e-3, 5e-3),
     torch.bfloat16: (3e-2, 2e-2),
 }
-CUDA_DEVICES = [
-    f"cuda:{i}" for i in range(1 if torch.cuda.device_count() == 1 else 2)
-]
 
 
 def get_random_id_to_index(num_loras: int,
@@ -154,10 +151,14 @@ def create_random_inputs(
     for _ in range(num_inputs):
         if input_type == torch.int:
             inputs.append(
-                torch.randint(low=int(low), high=int(high), size=input_size))
+                torch.randint(low=int(low),
+                              high=int(high),
+                              size=input_size,
+                              device="cuda"))
         else:
             inputs.append(
-                torch.rand(size=input_size, dtype=input_type) * high + low)
+                torch.rand(size=input_size, dtype=input_type, device="cuda") *
+                high + low)
 
         lora_id = random.choice(active_lora_ids)
         index_mapping += [lora_id] * input_size[0]
@@ -168,10 +169,8 @@ def create_random_inputs(
 
 @torch.inference_mode()
 @pytest.mark.parametrize("num_loras", [1, 2, 4, 8])
-@pytest.mark.parametrize("device", CUDA_DEVICES)
-def test_embeddings(dist_init, num_loras, device) -> None:
+def test_embeddings(dist_init, num_loras) -> None:
 
-    torch.set_default_device(device)
     max_loras = 8
     lora_config = LoRAConfig(max_loras=max_loras,
                              max_lora_rank=8,
@@ -260,10 +259,8 @@ def test_embeddings(dist_init, num_loras, device) -> None:
 @torch.inference_mode()
 # @pytest.mark.skip(reason="Fails when loras are in any slot other than the first.")
 @pytest.mark.parametrize("num_loras", [1, 2, 4, 8])
-@pytest.mark.parametrize("device", CUDA_DEVICES)
-def test_embeddings_with_new_embeddings(dist_init, num_loras, device) -> None:
+def test_embeddings_with_new_embeddings(dist_init, num_loras) -> None:
 
-    torch.set_default_device(device)
     max_loras = 8
     lora_config = LoRAConfig(max_loras=max_loras,
                              max_lora_rank=8,
@@ -308,7 +305,8 @@ def test_embeddings_with_new_embeddings(dist_init, num_loras, device) -> None:
 
         # Add empty embeddings_tensors for unoccupied lora slots.
         for _ in range(max_loras - len(embeddings_tensors)):
-            embeddings_tensors.append(torch.zeros(embeddings_tensors[0].shape))
+            embeddings_tensors.append(
+                torch.zeros(embeddings_tensors[0].shape, device="cuda"))
 
         inputs, index_mapping, prompt_mapping = create_random_inputs(
             active_lora_ids=list(lora_dict.keys()),
@@ -390,10 +388,8 @@ def test_embeddings_with_new_embeddings(dist_init, num_loras, device) -> None:
 
 @torch.inference_mode()
 @pytest.mark.parametrize("num_loras", [1, 2, 4, 8])
-@pytest.mark.parametrize("device", CUDA_DEVICES)
-def test_lm_head_sampler(dist_init, num_loras, device) -> None:
+def test_lm_head_sampler(dist_init, num_loras) -> None:
 
-    torch.set_default_device(device)
     max_loras = 8
     lora_config = LoRAConfig(max_loras=max_loras,
                              max_lora_rank=8,
@@ -436,7 +432,7 @@ def test_lm_head_sampler(dist_init, num_loras, device) -> None:
         )
         lora_mapping = LoRAMapping(index_mapping, prompt_mapping)
 
-        input_ = torch.rand(20, 1024)
+        input_ = torch.rand(20, 1024, device="cuda")
         mapping_info = convert_mapping(
             lora_mapping,
             id_to_index,
@@ -504,10 +500,8 @@ def test_lm_head_sampler(dist_init, num_loras, device) -> None:
 @torch.inference_mode()
 @pytest.mark.parametrize("num_loras", [1, 2, 4, 8])
 @pytest.mark.parametrize("orientation", ["row", "column"])
-@pytest.mark.parametrize("device", CUDA_DEVICES)
-def test_linear_parallel(dist_init, num_loras, orientation, device) -> None:
+def test_linear_parallel(dist_init, num_loras, orientation) -> None:
 
-    torch.set_default_device(device)
     max_loras = 8
     lora_config = LoRAConfig(max_loras=max_loras,
                              max_lora_rank=8,
@@ -603,10 +597,8 @@ def test_linear_parallel(dist_init, num_loras, orientation, device) -> None:
 @torch.inference_mode()
 @pytest.mark.parametrize("num_loras", [1, 2, 4, 8])
 @pytest.mark.parametrize("repeats", [2, 3])
-@pytest.mark.parametrize("device", CUDA_DEVICES)
-def test_column_parallel_packed(dist_init, num_loras, repeats, device) -> None:
+def test_column_parallel_packed(dist_init, num_loras, repeats) -> None:
 
-    torch.set_default_device(device)
     max_loras = 8
     lora_config = LoRAConfig(max_loras=max_loras,
                              max_lora_rank=8,

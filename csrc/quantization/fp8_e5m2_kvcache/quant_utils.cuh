@@ -9,6 +9,7 @@
 #include "../../attention/dtype_float16.cuh"
 #include "../../attention/dtype_bfloat16.cuh"
 
+#pragma once
 
 namespace vllm {
 #ifdef ENABLE_FP8_E5M2

@@ -111,13 +111,13 @@ class LLM:
 
     def get_tokenizer(
             self) -> Union[PreTrainedTokenizer, PreTrainedTokenizerFast]:
-        return self.llm_engine.tokenizer.tokenizer
+        return self.llm_engine.tokenizer
 
     def set_tokenizer(
         self,
         tokenizer: Union[PreTrainedTokenizer, PreTrainedTokenizerFast],
     ) -> None:
-        self.llm_engine.tokenizer.tokenizer = tokenizer
+        self.llm_engine.tokenizer = tokenizer
 
     def generate(
         self,
