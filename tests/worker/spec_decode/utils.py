@@ -75,7 +75,7 @@ def create_worker(cls: type,
                   num_gpu_blocks: int,
                   seed: int,
                   is_driver_worker: bool = True,
-                  enforce_eager: bool = True):
+                  enforce_eager: bool = False):
     engine_args = EngineArgs(
         model=model_name,
         seed=seed,
